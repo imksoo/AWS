@@ -1,0 +1,80 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Create IAM role of EC2 instance"
+Parameters:
+  IAMRoleName:
+    Type: "String"
+    Description: "IAM role name of EC2 instance"
+    MinLength: "3"
+    MaxLength: "128"
+    AllowedPattern: "[\\w+=,.@-]+"
+    Default: "role-name"
+Resources:
+  IAMRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: !Ref IAMRoleName
+      Path: "/"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          Effect: "Allow"
+          Principal:
+            Service: "ec2.amazonaws.com"
+          Action: "sts:AssumeRole"
+  IAMInstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      Path: "/"
+      Roles:
+        - !Ref IAMRole
+  IAMRolePolicyCloudWatchLogs:
+    Type: "AWS::IAM::Policy"
+    Properties:
+      Roles:
+        - !Ref IAMRole
+      PolicyName: "IAMRolePolicyCloudWatchLogs"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Action:
+              - "logs:GetLogEvents"
+              - "logs:PutLogEvents"
+              - "logs:CreateLogGroup"
+              - "logs:CreateLogStream"
+            Resource: "*"
+  IAMRolePolicyS3:
+    Type: "AWS::IAM::Policy"
+    Properties:
+      Roles:
+        - !Ref IAMRole
+      PolicyName: "IAMRolePolicyS3"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Action:
+              - "s3:ListAllMyBuckets"
+              - "s3:ListBucket"
+              - "s3:GetObject"
+              - "s3:PutObject"
+              - "s3:DeleteObject"
+              - "s3:*MultipartUpload*"
+            Resource: "*"
+  IAMRolePolicyEC2:
+    Type: "AWS::IAM::Policy"
+    Properties:
+      Roles:
+        - !Ref IAMRole
+      PolicyName: "IAMRolePolicyEC2"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Action:
+              - "ec2:*Tags"
+              - "ec2:Describe*"
+            Resource: "*"
