@@ -1,0 +1,60 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "S3 Bucket for AWS CloudTrail."
+Parameters:
+  S3BucketName:
+    Type: "String"
+    Description: "Bucket name"
+    MinLength: "3"
+    MaxLength: "63"
+    AllowedPattern: "[a-z0-9][a-zA-Z0-9.-]+"
+Resources:
+  S3Bucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName:
+        Ref: S3BucketName
+      Tags:
+        -
+          Key: "Name"
+          Value: !Sub |-
+            CloudTrail bucket for ${AWS::AccountId} by ${AWS::StackName}.
+  S3BucketPolicy:
+    Type: "AWS::S3::BucketPolicy"
+    DependsOn:
+      - S3Bucket
+    Properties:
+      Bucket:
+        Ref: S3Bucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Sid: "AWSCloudTrailACLCheck"
+            Effect: "Allow"
+            Principal:
+              Service: "cloudtrail.amazonaws.com"
+            Action: "s3:GetBucketAcl"
+            Resource: !Sub |-
+              arn:aws:s3:::${S3Bucket}
+          -
+            Sid: "AWSCloudTrailWriteLogs"
+            Effect: "Allow"
+            Principal:
+              Service: "cloudtrail.amazonaws.com"
+            Action: "s3:PutObject"
+            Resource: !Sub |-
+              arn:aws:s3:::${S3Bucket}/AWSLogs/${AWS::AccountId}/*
+            Condition:
+              StringEquals:
+                s3:x-amz-acl: "bucket-owner-full-control"
+  CloudTrail:
+    Type: "AWS::CloudTrail::Trail"
+    DependsOn:
+      - S3Bucket
+      - S3BucketPolicy
+    Properties:
+      S3BucketName:
+        Ref: S3BucketName
+      IsLogging: true
+      IsMultiRegionTrail: true
+      IncludeGlobalServiceEvents: true
