@@ -1,47 +1,44 @@
-AWSTemplateFormatVersion: "2010-09-09"
-Description: "Create IAM group of power users"
+AWSTemplateFormatVersion: 2010-09-09
+Description: Create IAM group of power users
 Parameters:
   IAMGroupName:
-    Type: "String"
-    Description: "IAM group name of power users"
-    MinLength: "3"
-    MaxLength: "128"
+    Type: String
+    Description: IAM group name of power users
+    MinLength: 3
+    MaxLength: 128
     AllowedPattern: "[\\w+=,.@-]+"
-    Default: "PowerUsers"
+    Default: PowerUsers
 Resources:
   IAMGroup:
-    Type: "AWS::IAM::Group"
+    Type: AWS::IAM::Group
     Properties:
       GroupName:
         Ref: IAMGroupName
       ManagedPolicyArns:
-        - "arn:aws:iam::aws:policy/PowerUserAccess"
+        - arn:aws:iam::aws:policy/PowerUserAccess
   IAMGroupPolicy:
-    Type: "AWS::IAM::Policy"
+    Type: AWS::IAM::Policy
     Properties:
       Groups:
-        - !Ref IAMGroup
-      PolicyName: "ChangeMyPasswords"
+        - Ref: IAMGroup
+      PolicyName: ChangeMyPasswords
       PolicyDocument:
-        Version: "2012-10-17"
+        Version: 2012-10-17
         Statement:
-          -
-            Effect: "Allow"
-            NotAction: "iam:*"
-            Resource: "*"
-          -
-            Effect: "Allow"
+          - Effect: Allow
+            NotAction: iam:*
+            Resource: *
+          - Effect: Allow
             Action:
-              - "iam:Get*"
-              - "iam:List*"
-              - "iam:*ServerCertificate"
-            Resource: "*"
-          -
-            Effect: "Allow"
+              - iam:Get*
+              - iam:List*
+              - iam:*ServerCertificate
+            Resource: *
+          - Effect: Allow
             Action:
-              - "iam:ChangePassword"
-              - "iam:*LoginProfile"
-              - "iam:*AccessKey*"
-              - "iam:*SSHPublicKey*"
+              - iam:ChangePassword
+              - iam:*LoginProfile
+              - iam:*AccessKey*
+              - iam:*SSHPublicKey*
             Resource: !Sub |-
               arn:aws:iam::${AWS::AccountId}:user/${!aws:username}

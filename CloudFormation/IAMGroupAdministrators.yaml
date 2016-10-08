@@ -1,18 +1,18 @@
-AWSTemplateFormatVersion: "2010-09-09"
-Description: "Create IAM group of administrators"
+AWSTemplateFormatVersion: 2010-09-09
+Description: Create IAM group of administrators
 Parameters:
   IAMGroupName:
-    Type: "String"
-    Description: "IAM group name of administrators"
-    MinLength: "3"
-    MaxLength: "128"
+    Type: String
+    Description: IAM group name of administrators
+    MinLength: 3
+    MaxLength: 128
     AllowedPattern: "[\\w+=,.@-]+"
-    Default: "Administrators"
+    Default: Administrators
 Resources:
   IAMGroup:
-    Type: "AWS::IAM::Group"
+    Type: AWS::IAM::Group
     Properties:
       GroupName:
         Ref: IAMGroupName
       ManagedPolicyArns:
-        - "arn:aws:iam::aws:policy/AdministratorAccess"
+        - arn:aws:iam::aws:policy/AdministratorAccess
