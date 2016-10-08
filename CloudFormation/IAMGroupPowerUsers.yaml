@@ -27,13 +27,13 @@ Resources:
         Statement:
           - Effect: Allow
             NotAction: iam:*
-            Resource: *
+            Resource: "*"
           - Effect: Allow
             Action:
               - iam:Get*
               - iam:List*
               - iam:*ServerCertificate
-            Resource: *
+            Resource: "*"
           - Effect: Allow
             Action:
               - iam:ChangePassword

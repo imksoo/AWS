@@ -43,7 +43,7 @@ Resources:
               - logs:PutLogEvents
               - logs:CreateLogGroup
               - logs:CreateLogStream
-            Resource: *
+            Resource: "*"
   IAMRolePolicyS3:
     Type: AWS::IAM::Policy
     Properties:
@@ -61,7 +61,7 @@ Resources:
               - s3:PutObject
               - s3:DeleteObject
               - s3:*MultipartUpload*
-            Resource: *
+            Resource: "*"
   IAMRolePolicyEC2:
     Type: AWS::IAM::Policy
     Properties:
@@ -75,4 +75,4 @@ Resources:
             Action:
               - ec2:*Tags
               - ec2:Describe*
-            Resource: *
+            Resource: "*"
