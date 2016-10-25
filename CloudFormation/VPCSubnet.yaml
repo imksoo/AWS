@@ -25,14 +25,19 @@ Parameters:
     AllowedPattern: "[a-zA-Z0-9][a-zA-Z0-9-]+"
   AssignPublicIp:
     Type: String
-    Description: Indicates whether instances that are launched in this subnet receive a public IP address. By default, the value is false.
+    Description:
+      Indicates whether instances that are launched in
+      this subnet receive a public IP address.
+      By default, the value is false.
     AllowedValues:
       - true
       - false
     Default: false
   CreateInternetGateway:
     Type: String
-    Description: Create internet gateway and assign to route table. If you use NAT gateway, set this parameter to true.
+    Description:
+      Create internet gateway and assign to route table.
+      If you use NAT gateway, set this parameter to true.
     AllowedValues:
       - true
       - false
@@ -49,14 +54,14 @@ Conditions:
     !Equals ["true", !Ref CreateInternetGateway]
   CondCreateIGWRoute:
     !And
-      - !Equals ["true", !Ref CreateInternetGateway]
-      - !Equals ["false", !Ref CreateNATGateway]
+    - !Equals ["true", !Ref CreateInternetGateway]
+    - !Equals ["false", !Ref CreateNATGateway]
   CondCreateNATGW:
     !Equals ["true", !Ref CreateNATGateway]
   CondCreateNATGWRoute:
     !And
-      - !Equals ["true", !Ref CreateInternetGateway]
-      - !Equals ["true", !Ref CreateNATGateway]
+    - !Equals ["true", !Ref CreateInternetGateway]
+    - !Equals ["true", !Ref CreateNATGateway]
 Resources:
   VPC:
     Type: AWS::EC2::VPC
