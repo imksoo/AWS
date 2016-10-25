@@ -49,6 +49,13 @@ Parameters:
       - true
       - false
     Default: false
+  CreateVPNGateway:
+    Type: String
+    Description: Create VPN gateway and assign to route table.
+    AllowedValues:
+      - true
+      - false
+    Default: false
 Conditions:
   CondCreateIGW:
     !Equals ["true", !Ref CreateInternetGateway]
@@ -62,6 +69,8 @@ Conditions:
     !And
     - !Equals ["true", !Ref CreateInternetGateway]
     - !Equals ["true", !Ref CreateNATGateway]
+  CondCreateVPNGW:
+    !Equals ["true", !Ref CreateVPNGateway]
 Resources:
   VPC:
     Type: AWS::EC2::VPC
@@ -244,3 +253,26 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       NatGatewayId: !Ref NATGatewayC
     Condition: CondCreateNATGWRoute
+  VPNGateway:
+    Type: AWS::EC2::VPNGateway
+    Properties:
+      Type: ipsec.1
+      Tags:
+        - Key: Name
+          Value: !Sub VPNGW-${VPCName}
+    Condition: CondCreateVPNGW
+  VPNGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpnGatewayId: !Ref VPNGateway
+      VpcId: !Ref VPC
+    Condition: CondCreateVPNGW
+  VPNGatewayRoutePropagation:
+    Type: AWS::EC2::VPNGatewayRoutePropagation
+    Properties:
+      RouteTableIds:
+        - !Ref RouteTableA
+        - !Ref RouteTableC
+      VpnGatewayId: !Ref VPNGateway
+    DependsOn: VPNGatewayAttachment
+    Condition: CondCreateVPNGW
