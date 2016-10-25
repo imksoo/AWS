@@ -1,0 +1,15 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: Create IAM user
+Resources:
+  IAMUserKirinoMinato:
+    Type: AWS::IAM::User
+    Properties:
+      Path: /
+      UserName: kirino-minato
+  IAMUserAddToGroup:
+    Type: AWS::IAM::UserToGroupAddition
+    Properties:
+      GroupName: Administrators
+      Users:
+        - Ref: IAMUserKirinoMinato
