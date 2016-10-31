@@ -33,40 +33,65 @@ Resources:
       SecurityGroupIds: !Ref SecurityGroupIds
       InstanceType: !Ref InstanceType
       IamInstanceProfile: !Ref InstanceProfile
-
       Tenancy: default
       InstanceInitiatedShutdownBehavior: stop
-
       Tags:
         - Key: Name
           Value: !Ref InstanceName
-
       BlockDeviceMappings:
         - DeviceName: /dev/xvda
           Ebs:
             VolumeSize: 8
             DeleteOnTermination: true
-
       UserData:
         "Fn::Base64": !Sub |-
           #cloud-config
           write_files:
-            - path: /etc/cloud/cloud.cfg.d/99_user-data.cfg
-              owner: root:root
-              permissions: "0644"
-              content: |-
-                locale: ja_JP.UTF-8
-                timezone: "Asia/Tokyo"
-                repo_upgrade: none
             - path: /etc/profile.d/aws-region.sh
               owner: root:root
               permissions: "0644"
-              content: |-
-                export AWS_DEFAULT_REGION="${AWS::Region}"
+              content: |
+                export AWS_DEFAULT_REGION=${AWS::Region}
             - path: /etc/profile.d/aws-region.csh
               owner: root:root
               permissions: "0644"
-              content: |-
-                setenv AWS_DEFAULT_REGION "${AWS::Region}
+              content: |
+                setenv AWS_DEFAULT_REGION ${AWS::Region}
+            - path: /etc/cloud/cloud.cfg.d/99_user-data.cfg
+              owner: root:root
+              permissions: "0644"
+              content: |
+                locale: ja_JP.UTF-8
+                timezone: "Asia/Tokyo"
+                repo_upgrade: none
+            - path: /etc/awslogs/awscli.conf
+              owner: root:root
+              permissions: "0600"
+              content: |
+                [plugins]
+                cwlogs = cwlogs
+                [default]
+                region = ${AWS::Region}
+            - path: /etc/awslogs/awslogs.conf
+              owner: root:root
+              permissions: "0644"
+              content: |
+                [general]
+                state_file = /var/lib/awslogs/agent-state
+            - path: /etc/awslogs/config/var-log-messages.conf
+              owner: root:root
+              permissions: "0644"
+              content: |
+                [/var/log/messages]
+                file = /var/log/messages
+                log_group_name = /var/log/messages
+                log_stream_name = {instance_id}
+                buffer_duration = 5000
+                initial_position = start_of_file
+                datetime_format = %b %d %H:%M:%S
+          packages:
+            - jq
+            - awslogs
           runcmd:
-            - yum install -y jq
+            - chkconfig awslogs on
+            - service awslogs start
