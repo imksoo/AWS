@@ -1,0 +1,72 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: Create EC2 instance
+Parameters:
+  InstanceName:
+    Type: String
+    Description: Name of EC2 instance
+    MinLength: 3
+    MaxLength: 63
+    AllowedPattern: "[a-zA-Z0-9][a-zA-Z0-9-]+"
+    Default: bastion
+  SubnetId:
+    Type: AWS::EC2::Subnet::Id
+  SecurityGroupIds:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+  ImageId:
+    Type: AWS::EC2::Image::Id
+    Default: ami-1a15c77b
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+  InstanceType:
+    Type: String
+    Default: t2.micro
+  InstanceProfile:
+    Type: String
+Resources:
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      KeyName: !Ref KeyName
+      ImageId: !Ref ImageId
+      SubnetId: !Ref SubnetId
+      SecurityGroupIds: !Ref SecurityGroupIds
+      InstanceType: !Ref InstanceType
+      IamInstanceProfile: !Ref InstanceProfile
+
+      Tenancy: default
+      InstanceInitiatedShutdownBehavior: stop
+
+      Tags:
+        - Key: Name
+          Value: !Ref InstanceName
+
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeSize: 8
+            DeleteOnTermination: true
+
+      UserData:
+        "Fn::Base64": !Sub |-
+          #cloud-config
+          write_files:
+            - path: /etc/cloud/cloud.cfg.d/99_user-data.cfg
+              owner: root:root
+              permissions: "0644"
+              content: |-
+                locale: ja_JP.UTF-8
+                timezone: "Asia/Tokyo"
+                repo_upgrade: none
+            - path: /etc/profile.d/aws-region.sh
+              owner: root:root
+              permissions: "0644"
+              content: |-
+                export AWS_DEFAULT_REGION="${AWS::Region}"
+            - path: /etc/profile.d/aws-region.csh
+              owner: root:root
+              permissions: "0644"
+              content: |-
+                setenv AWS_DEFAULT_REGION "${AWS::Region}
+          runcmd:
+            - yum install -y jq
