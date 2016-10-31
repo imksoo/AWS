@@ -1,0 +1,60 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: Create security group of EC2 instance
+Parameters:
+  SGName:
+    Type: String
+    Description: Security Group name of EC2 instance
+    MinLength: 3
+    MaxLength: 63
+    AllowedPattern: "[a-zA-Z0-9][a-zA-Z0-9-]+"
+    Default: sg-bastion
+  VPCID:
+    Type: AWS::EC2::VPC::Id
+Resources:
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Ref SGName
+      Tags:
+        - Key: Name
+          Value: !Ref SGName
+      VpcId: !Ref VPCID
+      SecurityGroupIngress:
+        - IpProtocol: icmp
+          CidrIp: 0.0.0.0/0
+          FromPort: -1
+          ToPort: -1
+        - IpProtocol: tcp
+          CidrIp: 0.0.0.0/0
+          FromPort: 22
+          ToPort: 22
+      SecurityGroupEgress:
+        - IpProtocol: icmp
+          CidrIp: 0.0.0.0/0
+          FromPort: -1
+          ToPort: -1
+        - IpProtocol: tcp
+          CidrIp: 10.0.0.0/8
+          FromPort: 22
+          ToPort: 22
+        - IpProtocol: tcp
+          CidrIp: 0.0.0.0/0
+          FromPort: 53
+          ToPort: 53
+        - IpProtocol: udp
+          CidrIp: 0.0.0.0/0
+          FromPort: 53
+          ToPort: 53
+        - IpProtocol: udp
+          CidrIp: 0.0.0.0/0
+          FromPort: 123
+          ToPort: 123
+        - IpProtocol: tcp
+          CidrIp: 0.0.0.0/0
+          FromPort: 80
+          ToPort: 80
+        - IpProtocol: tcp
+          CidrIp: 0.0.0.0/0
+          FromPort: 443
+          ToPort: 443
