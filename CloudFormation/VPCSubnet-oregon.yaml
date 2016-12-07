@@ -329,3 +329,42 @@ Resources:
       VpnGatewayId: !Ref VPNGateway
     DependsOn: VPNGatewayAttachment
     Condition: CondCreateVPNGW
+  VPCFlowLogsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - vpc-flow-logs.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+  VPCFlowLogsPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: VPCFlowLogs
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+              - logs:DescribeLogGroup
+              - logs:DescribeLogStream
+            Resource: "*"
+      Roles:
+        - !Ref VPCFlowLogsRole
+    DependsOn: VPCFlowLogsRole
+  VPCFlowLogs:
+    Type: AWS::EC2::FlowLog
+    Properties:
+      DeliverLogsPermissionArn: !GetAtt [VPCFlowLogsRole, Arn]
+      LogGroupName: !Sub VPCFlowLogs-${VPCName}
+      ResourceId: !Ref VPC
+      ResourceType: VPC
+      TrafficType: ALL
