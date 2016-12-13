@@ -8,13 +8,15 @@ Parameters:
     MinLength: 3
     MaxLength: 128
     AllowedPattern: "[\\w+=,.@-]+"
-    Default: role-bastion
+    Default: role-workshop
 Resources:
   IAMRole:
     Type: AWS::IAM::Role
     Properties:
       RoleName: !Ref IAMRoleName
       Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -75,4 +77,17 @@ Resources:
             Action:
               - ec2:*Tags
               - ec2:Describe*
+            Resource: "*"
+  IAMRolePolicyCloudFormation:
+    Type: AWS::IAM::Policy
+    Properties:
+      Roles:
+        - Ref: IAMRole
+      PolicyName: IAMRolePolicyCloudFormation
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - cloudformation:*
             Resource: "*"

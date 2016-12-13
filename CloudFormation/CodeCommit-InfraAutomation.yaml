@@ -1,0 +1,21 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: CodeCommit repository.
+Parameters:
+  RepositoryName:
+    Type: String
+    Description: Repository name
+    MinLength: 3
+    MaxLength: 63
+    AllowedPattern: "[a-z0-9][a-zA-Z0-9.-]+"
+    Default: infra-automation
+  RepositoryDescription:
+    Type: String
+    Description: Repository description
+    Default: infra-automation
+Resources:
+  CodeCommitRepository:
+    Type: AWS::CodeCommit::Repository
+    Properties:
+      RepositoryDescription: !Ref RepositoryDescription
+      RepositoryName: !Ref RepositoryName

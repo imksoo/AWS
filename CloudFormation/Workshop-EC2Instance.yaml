@@ -8,7 +8,7 @@ Parameters:
     MinLength: 3
     MaxLength: 63
     AllowedPattern: "[a-zA-Z0-9][a-zA-Z0-9-]+"
-    Default: bastion
+    Default: workshop
   SubnetId:
     Type: AWS::EC2::Subnet::Id
   SecurityGroupIds:
