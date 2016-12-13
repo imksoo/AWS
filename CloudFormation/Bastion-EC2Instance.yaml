@@ -51,12 +51,12 @@ Resources:
               owner: root:root
               permissions: "0644"
               content: |
-                export AWS_DEFAULT_REGION=${AWS::Region}
+                export AWS_DEFAULT_REGION=$(curl --silent --retry 3 http://169.254.169.254/latest/meta-data/placement/availability-zone | sed -e 's/.$//g')
             - path: /etc/profile.d/aws-region.csh
               owner: root:root
               permissions: "0644"
               content: |
-                setenv AWS_DEFAULT_REGION ${AWS::Region}
+                setenv AWS_DEFAULT_REGION `curl --silent --retry 3 http://169.254.169.254/latest/meta-data/placement/availability-zone | sed -e 's/.$//g'`
             - path: /etc/cloud/cloud.cfg.d/99_user-data.cfg
               owner: root:root
               permissions: "0644"
