@@ -38,6 +38,8 @@ Resources:
       Tags:
         - Key: Name
           Value: !Ref InstanceName
+        - Key: SystemRoleNumber
+          Value: "mgmt:work:"
       BlockDeviceMappings:
         - DeviceName: /dev/xvda
           Ebs:
