@@ -47,6 +47,13 @@ Parameters:
       - true
       - false
     Default: false
+  CreateVPCS3Endpoint:
+    Type: String
+    Description: Create S3 Endpoint and assign to route table.
+    AllowedValues:
+      - true
+      - false
+    Default: false
   CreateNATGateway:
     Type: String
     Description: Create NAT gateway and assign to route table.
@@ -70,6 +77,8 @@ Conditions:
     - !Equals ["false", !Ref CreateNATGateway]
   CondCreateNATGW:
     !Equals ["true", !Ref CreateNATGateway]
+  CondCreateVPCS3Endpoint:
+    !Equals ["true", !Ref CreateVPCS3Endpoint]
   CondCreateNATGWRoute:
     !And
     - !Equals ["true", !Ref CreateInternetGateway]
@@ -251,6 +260,7 @@ Resources:
             Principal: "*"
             Action: "s3:*"
             Resource: "*"
+    Condition: CondCreateVPCS3Endpoint
   NATElasticIPA:
     Type: AWS::EC2::EIP
     Properties:
