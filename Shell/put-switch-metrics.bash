@@ -142,7 +142,7 @@ EOS
 }
 
 COMMUNITY_NAME="BERRYZNET"
-IPADDR_LIST="192.168.1.11 192.168.1.12 192.168.1.13"
+IPADDR_LIST="$*"
 
 for IPADDR in ${IPADDR_LIST} ; do
   OID_IF_NAME=".1.3.6.1.2.1.31.1.1.1.1"
@@ -157,19 +157,6 @@ for IPADDR in ${IPADDR_LIST} ; do
 
   paste <(echo "${IF_NAME_LIST}") <(echo "${IN_OCTETS_LIST}") <(echo "${OUT_OCTETS_LIST}") <(echo "${IF_SPEED_LIST}") | while read LINE
   do
-    put_interface_metrics ${LINE} &
+    put_interface_metrics ${LINE}
   done
-  wait
-done
-
-for IPADDR in ${IPADDR_LIST} ; do
-  OID_IF_NAME=".1.3.6.1.2.1.31.1.1.1.1"
-
-  IF_NAME_LIST=$(snmpbulkwalk -v2c -c${COMMUNITY_NAME} ${IPADDR} ${OID_IF_NAME} -Oqv)
-
-  paste <(echo "${IF_NAME_LIST}") | while read LINE
-  do
-    put_interface_statistics ${IPADDR} ${LINE} &
-  done
-  wait
 done
