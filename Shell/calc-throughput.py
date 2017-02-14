@@ -82,7 +82,6 @@ def lambda_handler(event, context):
                                     'Value': port_name
                                 }
                             ],
-                            'Timestamp': in_last1['Timestamp'],
                             'Value': in_throughput,
                             'Unit': 'Bytes/Second'
                         },
@@ -98,7 +97,6 @@ def lambda_handler(event, context):
                                     'Value': port_name
                                 }
                             ],
-                            'Timestamp': out_last1['Timestamp'],
                             'Value': out_throughput,
                             'Unit': 'Bytes/Second'
                         }
