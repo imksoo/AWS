@@ -15,7 +15,7 @@ Parameters:
     Type: List<AWS::EC2::SecurityGroup::Id>
   ImageId:
     Type: AWS::EC2::Image::Id
-    Default: ami-1a15c77b
+    Default: ami-9f0c67f8
   KeyName:
     Type: AWS::EC2::KeyPair::KeyName
   InstanceType:
