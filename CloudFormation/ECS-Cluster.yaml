@@ -1,0 +1,139 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: AWS ECS Cluster
+Parameters:
+    ClusterName:
+        Type: String
+        Description: ECS Cluster name
+        MinLength: 3
+        MaxLength: 63
+        AllowedPattern: "[a-zA-Z0-9][a-zA-Z0-9]+"
+    SubnetId:
+        Type: AWS::EC2::Subnet::Id
+    SecurityGroupIds:
+        Type: List<AWS::EC2::SecurityGroup::Id>
+    ImageId:
+        Type: AWS::EC2::Image::Id
+        Default: ami-c393d6a4
+    KeyName:
+        Type: AWS::EC2::KeyPair::KeyName
+    InstanceType:
+        Type: String
+        Default: t2.micro
+Resources:
+    ECSCluster:
+        Type: AWS::ECS::Cluster
+        Properties:
+            ClusterName: !Ref ClusterName
+    IAMECSServiceRole:
+        Type: AWS::IAM::Role
+        Properties:
+            AssumeRolePolicyDocument:
+                Statement:
+                    -   Effect: Allow
+                        Principal:
+                            Service: [ ecs.amazonaws.com ]
+                        Action: [ "sts:AssumeRole" ]
+            Path: /
+            ManagedPolicyArns:
+                -   arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole
+#                -   arn:aws:iam::aws:policy/AmazonEC2ContainerServiceAutoscaleRole
+#                -   arn:aws:iam::aws:policy/AmazonEC2ContainerServiceTaskRole
+    IAMECSInstanceRole:
+        Type: AWS::IAM::Role
+        Properties:
+            AssumeRolePolicyDocument:
+                Statement:
+                    -   Effect: Allow
+                        Principal:
+                            Service: [ ec2.amazonaws.com ]
+                        Action: [ "sts:AssumeRole" ]
+            Path: /
+            ManagedPolicyArns:
+                -   arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
+                -   arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser
+    IAMECSInstanceProfile:
+        Type: AWS::IAM::InstanceProfile
+        Properties:
+            Path: /
+            Roles:
+                -   !Ref IAMECSInstanceRole
+    ClusterEC2Instance:
+        Type: AWS::EC2::Instance
+        Properties:
+            KeyName: !Ref KeyName
+            ImageId: !Ref ImageId
+            SubnetId: !Ref SubnetId
+            SecurityGroupIds: !Ref SecurityGroupIds
+            InstanceType: !Ref InstanceType
+            IamInstanceProfile: !Ref IAMECSInstanceProfile
+            Tenancy: default
+            InstanceInitiatedShutdownBehavior: stop
+            Tags:
+                -   Key: Name
+                    Value: !Ref ClusterName
+            BlockDeviceMappings:
+                -   DeviceName: /dev/xvda
+                    Ebs:
+                        VolumeSize: 22
+                        DeleteOnTermination: true
+            UserData:
+                "Fn::Base64": !Sub |-
+                    #cloud-config
+                    write_files:
+                        -   path: /etc/profile.d/aws-region.sh
+                            owner: root:root
+                            permissions: "0644"
+                            content: |
+                                export AWS_DEFAULT_REGION=$(curl --silent --retry 3 http://169.254.169.254/latest/meta-data/placement/availability-zone | sed -e 's/.$//g')
+                        -   path: /etc/profile.d/aws-region.csh
+                            owner: root:root
+                            permissions: "0644"
+                            content: |
+                                setenv AWS_DEFAULT_REGION `curl --silent --retry 3 http://169.254.169.254/latest/meta-data/placement/availability-zone | sed -e 's/.$//g'`
+                        -   path: /etc/cloud/cloud.cfg.d/99_user-data.cfg
+                            owner: root:root
+                            permissions: "0644"
+                            content: |
+                                locale: ja_JP.UTF-8
+                                timezone: "Asia/Tokyo"
+                                repo_upgrade: none
+                        -   path: /etc/awslogs/awscli.conf.region
+                            owner: root:root
+                            permissions: "0600"
+                            content: |
+                                [plugins]
+                                cwlogs = cwlogs
+                                [default]
+                                region = ${AWS::Region}
+                        -   path: /etc/awslogs/awslogs.conf
+                            owner: root:root
+                            permissions: "0644"
+                            content: |
+                                [general]
+                                state_file = /var/lib/awslogs/agent-state
+                        -   path: /etc/awslogs/config/var-log-messages.conf
+                            owner: root:root
+                            permissions: "0644"
+                            content: |
+                                [/var/log/messages]
+                                file = /var/log/messages
+                                log_group_name = /var/log/messages
+                                log_stream_name = {instance_id}
+                                buffer_duration = 5000
+                                initial_position = start_of_file
+                                datetime_format = %b %d %H:%M:%S
+                        -   path: /etc/ecs/ecs.config
+                            owner: root:root
+                            permissions: "0644"
+                            content: |
+                                ECS_CLUSTER=${ClusterName}
+                    packages:
+                        -   jq
+                        -   git
+                        -   awslogs
+                    runcmd:
+                        -   service rsyslog restart
+                        -   cp -f /etc/awslogs/awscli.conf.region /etc/awslogs/awscli.conf
+                        -   chkconfig awslogs on
+                        -   service awslogs start
